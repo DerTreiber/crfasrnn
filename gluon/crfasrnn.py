@@ -5,6 +5,8 @@ from mxnet import gluon
 from mxnet.gluon import nn
 mx.random.seed(1)
 
+import gluoncv
+
 
 if mx.test_utils.list_gpus():
     print('Using GPU')
@@ -12,6 +14,7 @@ if mx.test_utils.list_gpus():
     ctx = mx.gpu()
 else:
     ctx = mx.cpu()
+    
 ### load training data
 batch_size = 64
 
@@ -52,10 +55,26 @@ def deconv_stack(architecture):
         out.add(vgg_block(num_convs, channels))
     return out
 
+# TODO
+# define multi_stage_mean_field as stack of cnn layers inside a RNN
+def multi_stage_mean_field(num_iterations=10, compatibility_mode='POTTS', threshold=2, theta_alpha=160, theta_beta=3, theta_gamma=3, spatial_filter_weight=3, bilateral_filter_weight=5):
+    out = nn.Sequential()
+    print(42)
+
+    return out
+
+def fcn():
+    out = nn.Sequential()
+
+    return out
+
+
+
 num_outputs = 10
 architecture = ((1,64), (1,128), (2,256), (2,512))
 net = nn.Sequential()
 with net.name_scope():
+    ### start FCN-VGG16
     net.add(vgg_stack(architecture))
     # TODO 
     # rewrite fully connected layers as convolutional layers
@@ -69,14 +88,14 @@ with net.name_scope():
 
     # TODO 
     # how to write skip connections
+    # https://discuss.mxnet.io/t/end-to-end-gluon-model-with-skip-connections/3171/3
 
     net.add(deconv_stack(architecture[::-1]))
 
-    # net.add(nn.Conv2DTranspose(channels=64, kernel_size=3,
-    #                         padding=1, activation='relu'))
+    ### end FCN-VGG16
 
     # TODO
-    # add multistage mean field algorithm
+    # net.add(multi_stage_mean_field())
 
 
 net.collect_params().initialize(mx.init.Xavier(magnitude=2.24), ctx=ctx)
@@ -93,6 +112,7 @@ def evaluate_accuracy(data_iterator, net):
         predictions = nd.argmax(output, axis=1)
         acc.update(preds=predictions, labels=label)
     return acc.get()[1]
+
 
 ###########################
 #  Only one epoch so tests can run quickly, increase this variable to actually run

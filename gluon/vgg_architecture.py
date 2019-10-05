@@ -52,6 +52,7 @@ with net.name_scope():
 net.collect_params().initialize(mx.init.Xavier(magnitude=2.24), ctx=ctx)
 trainer = gluon.Trainer(net.collect_params(), 'sgd', {'learning_rate': .05})
 
+
 softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
 
 def evaluate_accuracy(data_iterator, net):
@@ -64,32 +65,36 @@ def evaluate_accuracy(data_iterator, net):
         acc.update(preds=predictions, labels=label)
     return acc.get()[1]
 
+
+mx.viz.plot_network(net)
+
 ###########################
 #  Only one epoch so tests can run quickly, increase this variable to actually run
 ###########################
-epochs = 1
-smoothing_constant = .01
+if False:
+    epochs = 1
+    smoothing_constant = .01
 
-for e in range(epochs):
-    for i, (d, l) in enumerate(train_data):
-        data = d.as_in_context(ctx)
-        label = l.as_in_context(ctx)
-        with autograd.record():
-            output = net(data)
-            loss = softmax_cross_entropy(output, label)
-        loss.backward()
-        trainer.step(data.shape[0])
+    for e in range(epochs):
+        for i, (d, l) in enumerate(train_data):
+            data = d.as_in_context(ctx)
+            label = l.as_in_context(ctx)
+            with autograd.record():
+                output = net(data)
+                loss = softmax_cross_entropy(output, label)
+            loss.backward()
+            trainer.step(data.shape[0])
 
-        ##########################
-        #  Keep a moving average of the losses
-        ##########################
-        curr_loss = nd.mean(loss).asscalar()
-        moving_loss = (curr_loss if ((i == 0) and (e == 0))
-                       else (1 - smoothing_constant) * moving_loss + smoothing_constant * curr_loss)
+            ##########################
+            #  Keep a moving average of the losses
+            ##########################
+            curr_loss = nd.mean(loss).asscalar()
+            moving_loss = (curr_loss if ((i == 0) and (e == 0))
+                        else (1 - smoothing_constant) * moving_loss + smoothing_constant * curr_loss)
 
-        if i > 0 and i % 200 == 0:
-            print('Batch %d. Loss: %f' % (i, moving_loss))
+            if i > 0 and i % 200 == 0:
+                print('Batch %d. Loss: %f' % (i, moving_loss))
 
-    test_accuracy = evaluate_accuracy(test_data, net)
-    train_accuracy = evaluate_accuracy(train_data, net)
-    print("Epoch %s. Loss: %s, Train_acc %s, Test_acc %s" % (e, moving_loss, train_accuracy, test_accuracy))
+        test_accuracy = evaluate_accuracy(test_data, net)
+        train_accuracy = evaluate_accuracy(train_data, net)
+        print("Epoch %s. Loss: %s, Train_acc %s, Test_acc %s" % (e, moving_loss, train_accuracy, test_accuracy))
