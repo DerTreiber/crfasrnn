@@ -27,7 +27,7 @@ TF_VERSION_GTE_1_4 := $(shell [ $(TF_VER_MAJOR) -gt 1 -o \( $(TF_VER_MAJOR) -eq 
 
 
 # Flags required for all cases
-CFLAGS := -std=c++11 -shared -fPIC -I$(TF_INC) -O2 
+CFLAGS := -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 -shared -fPIC -I$(TF_INC) -O2 
 
 # Set a special flag if we are on macOS
 ifeq ($(shell uname -s), Darwin)
