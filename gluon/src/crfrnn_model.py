@@ -6,8 +6,7 @@ from mxnet.gluon import nn
 mx.random.seed(1)
 
 from crfrnn_layer import CrfRnnLayer
-
-import gluoncv
+from custom_layers import CroppingLayer2D, Add
 
 
 def get_crfrnn_model_def():
@@ -24,7 +23,7 @@ def get_crfrnn_model_def():
     input_shape = (height, width, channels)
 
 
-    # img_input = nn.Input(shape=input_shape)
+    img_input = nn.Input(shape=input_shape)
 
     # with net.name_scope():
             
@@ -81,33 +80,37 @@ def get_crfrnn_model_def():
     # Skip connections from pool4
     score_pool4 = nn.Conv2D(21, (1, 1), name='score-pool4')(pool4)
     # score_pool4c = nn.Cropping2D((5, 5))(score_pool4)
-    # # score_fused = nn.Add()([score2, score_pool4c])
-    # score4 = nn.Conv2DTranspose(21, (4, 4), strides=2, name='score4', use_bias=False)(score2, score_pool4c)
+    score_pool4c = CroppingLayer2D((5,5))(score_pool4)
+    score_fused = Add()([score2, score_pool4c])
+    score4 = nn.Conv2DTranspose(21, (4, 4), strides=2, name='score4', use_bias=False)(score_fused)
 
-    # # Skip connections from pool3
-    # score_pool3 = nn.Conv2D(21, (1, 1), name='score-pool3')(pool3)
+    # Skip connections from pool3
+    score_pool3 = nn.Conv2D(21, (1, 1), name='score-pool3')(pool3)
     # score_pool3c = nn.Cropping2D((9, 9))(score_pool3)
+    score_pool3c = CroppingLayer2D((9,9))(score_pool3)
 
-    # # # Fuse things together
-    # # score_final = nn.Add()([score4, score_pool3c])
+    # # Fuse things together
+    score_final = Add()([score4, score_pool3c])
 
-    # # Final up-sampling and cropping
+    # Final up-sampling and cropping
     # upsample = nn.Conv2DTranspose(21, (16, 16), strides=8, name='upsample', use_bias=False)(score4, score_pool3c)
+    upsample = nn.Conv2DTranspose(21, (16, 16), strides=8, name='upsample', use_bias=False)(score_final)
     # upscore = nn.Cropping2D(((31, 37), (31, 37)))(upsample)
+    upscore = CroppingLayer2D(((31, 37), (31, 37)))(upsample)
 
-    # output = CrfRnnLayer(image_dims=(height, width),
-    #                     num_classes=21,
-    #                     theta_alpha=160.,
-    #                     theta_beta=3.,
-    #                     theta_gamma=3.,
-    #                     num_iterations=10,
-    #                     name='crfrnn')([upscore, img_input])
+    output = CrfRnnLayer(image_dims=(height, width),
+                        num_classes=21,
+                        theta_alpha=160.,
+                        theta_beta=3.,
+                        theta_gamma=3.,
+                        num_iterations=10,
+                        name='crfrnn')([upscore, img_input])
 
 
 
     # # Build the model
 
     net = nn.Sequential(score_pool4)
-    # model = Model(img_input, output, name='crfrnn_net')
+    model = Model(img_input, output, name='crfrnn_net')
 
-    # return model
+    return model

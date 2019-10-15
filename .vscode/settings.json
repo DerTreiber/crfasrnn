@@ -1,3 +1,3 @@
 {
-    "python.pythonPath": "/home/treiber/miniconda3/envs/tf_keras/bin/python"
+    "python.pythonPath": "/usr/bin/python"
 }

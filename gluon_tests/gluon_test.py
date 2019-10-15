@@ -11,9 +11,6 @@ MNIST.transform
 
 import gluoncv
 
-### TODO:
-### problem, does not include VGG16 backbone, which is used in original crfasrnn
-
 # model = gluoncv.model_zoo.get_fcn(dataset='pascal_voc', backbone='resnet50', pretrained=False)
 # model.summary()
 
@@ -42,28 +39,19 @@ model = nn.Sequential()
 
 
 # Add additional convolutional layers to get the size down to at most 8x8
-additional_layers = 0
+# additional_layers = 0
 
 # while model.layers[-1].output_shape[2] > 8:
-additional_layers += 1
-layer = 5 + additional_layers
-conv1 = model.add(nn.Conv2D(3, 3, 3, padding=(1,1), activation='relu'))
-conv2 = model.add(nn.Conv2D(3, 3, 3, padding=(1,1), activation='relu'))(conv1)
-conv3 = model.add(nn.Conv2D(3, 3, 3, padding=(1,1), activation='relu'))
-max1 = model.add(nn.MaxPool2D((2, 2), strides=(2, 2)))
+# additional_layers += 1
+# layer = 5 + additional_layers
+# conv1 = model.add(nn.Conv2D(3, 3, 3, padding=(1,1), activation='relu'))
+# conv2 = model.add(nn.Conv2D(3, 3, 3, padding=(1,1), activation='relu'))(conv1)
+# conv3 = model.add(nn.Conv2D(3, 3, 3, padding=(1,1), activation='relu'))
+# max1 = model.add(nn.MaxPool2D((2, 2), strides=(2, 2)))
 
 # layer_size = model.layers[-1].output_shape[2]
 
 
-for key, layer in model._children.items():
-    # print(key, layer)
-    print(layer.collect_params())
-
-  
-
-# model2 = gluoncv.model_zoo.vgg16()
-# print(model2)
-# combined = gluon.nn.Sequential()
-# combined.add(model)
-# combined.add(model2)
-# print(combined)
+# for key, layer in model._children.items():
+#     # print(key, layer)
+#     print(layer.collect_params())
