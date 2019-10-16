@@ -6,7 +6,7 @@ from mxnet.gluon import nn
 mx.random.seed(1)
 
 from crfrnn_layer import CrfRnnLayer
-from custom_layers import CroppingLayer2D, Add
+from custom_layers import CroppingLayer2D, Add, Input
 
 
 def get_crfrnn_model_def():
@@ -23,56 +23,66 @@ def get_crfrnn_model_def():
     input_shape = (height, width, channels)
 
 
-    img_input = nn.Input(shape=input_shape)
-
     # with net.name_scope():
             
     ### maybe unnecessary
-    # img_input = Input(shape=input_shape)
+    img_input = Input(shape=input_shape)
 
     # Add plenty of zero padding
     # net = ZeroPadding2D(padding=(100, 100))(img_input)
 
     # VGG-16 convolution block 1
-
-    net = nn.Conv2D(64, (3, 3), activation='relu', padding=(100,100), name='conv1_1')
-    print(net)
-    net = nn.Conv2D(64, (3, 3), activation='relu', padding='same', name='conv1_2')(net)
-    print(net)
-    net = nn.MaxPool2D((2, 2), strides=(2, 2), name='pool1')(net)
-    print(net)
+    block1 = nn.Sequential()
+    with block1.name_scope():
+        block1.add(img_input)
+        block1.add(nn.Conv2D(64, (3, 3), activation='relu', padding=(100,100), name='conv1_1'))
+        block1.add(nn.Conv2D(64, (3, 3), activation='relu', padding='same', name='conv1_2'))
+        block1.add(nn.MaxPool2D((2, 2), strides=(2, 2), name='pool1'))
 
     # VGG-16 convolution block 2
-    net = nn.Conv2D(128, (3, 3), activation='relu', padding='same', name='conv2_1')(net)
-    net = nn.Conv2D(128, (3, 3), activation='relu', padding='same', name='conv2_2')(net)
-    net = nn.MaxPool2D((2, 2), strides=(2, 2), name='pool2', padding='same')(net)
+    block2 = nn.Sequential()
+    with block2.name_scope():
+        block2.add(block1)
+        block2.add(nn.Conv2D(128, (3, 3), activation='relu', padding='same', name='conv2_1'))
+        block2.add(nn.Conv2D(128, (3, 3), activation='relu', padding='same', name='conv2_2'))
+        block2.add(nn.MaxPool2D((2, 2), strides=(2, 2), name='pool2', padding='same'))
 
     # VGG-16 convolution block 3
-    net = nn.Conv2D(256, (3, 3), activation='relu', padding='same', name='conv3_1')(net)
-    net = nn.Conv2D(256, (3, 3), activation='relu', padding='same', name='conv3_2')(net)
-    net = nn.Conv2D(256, (3, 3), activation='relu', padding='same', name='conv3_3')(net)
-    net = nn.MaxPool2D((2, 2), strides=(2, 2), name='pool3', padding='same')(net)
-    pool3 = net
+    block3 = nn.Sequential()
+    with block3.name_scope():
+        block3.add(block2)
+        block3.add(nn.Conv2D(256, (3, 3), activation='relu', padding='same', name='conv3_1'))
+        block3.add(nn.Conv2D(256, (3, 3), activation='relu', padding='same', name='conv3_2'))
+        block3.add(nn.Conv2D(256, (3, 3), activation='relu', padding='same', name='conv3_3'))
+        block3.add(nn.MaxPool2D((2, 2), strides=(2, 2), name='pool3', padding='same'))
 
     # VGG-16 convolution block 4
-    net = nn.Conv2D(512, (3, 3), activation='relu', padding='same', name='conv4_1')(net)
-    net = nn.Conv2D(512, (3, 3), activation='relu', padding='same', name='conv4_2')(net)
-    net = nn.Conv2D(512, (3, 3), activation='relu', padding='same', name='conv4_3')(net)
-    net = nn.MaxPool2D((2, 2), strides=(2, 2), name='pool4', padding='same')(net)
-    pool4 = net
+    block4 = nn.Sequential()
+    with block4.name_scope():
+        block4.add(block3)
+        block4.add(nn.Conv2D(512, (3, 3), activation='relu', padding='same', name='conv4_1'))
+        block4.add(nn.Conv2D(512, (3, 3), activation='relu', padding='same', name='conv4_2'))
+        block4.add(nn.Conv2D(512, (3, 3), activation='relu', padding='same', name='conv4_3'))
+        block4.add(nn.MaxPool2D((2, 2), strides=(2, 2), name='pool4', padding='same'))
 
     # VGG-16 convolution block 5
-    net = nn.Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_1')(net)
-    net = nn.Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_2')(net)
-    net = nn.Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_3')(net)
-    net = nn.MaxPool2D((2, 2), strides=(2, 2), name='pool5', padding='same')(net)
+    block5 = nn.Sequential()
+    with block5.name_scope():
+        block5.add(block4)
+        block5.add(nn.Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_1'))
+        block5.add(nn.Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_2'))
+        block5.add(nn.Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_3'))
+        block5.add(nn.MaxPool2D((2, 2), strides=(2, 2), name='pool5', padding='same'))
 
     # Fully-connected layers converted to convolution layers
-    net = nn.Conv2D(4096, (7, 7), activation='relu', padding='valid', name='fc6')(net)
-    net = nn.Dropout(0.5)(net)
-    net = nn.Conv2D(4096, (1, 1), activation='relu', padding='valid', name='fc7')(net)
-    net = nn.Dropout(0.5)(net)
-    net = nn.Conv2D(21, (1, 1), padding='valid', name='score-fr')(net)
+    fc_end = nn.Sequential()
+    with fc_end.name_scope():
+        fc_end.add(block5)
+        fc_end.add(nn.Conv2D(4096, (7, 7), activation='relu', padding='valid', name='fc6'))
+        fc_end.add(nn.Dropout(0.5))
+        fc_end.add(nn.Conv2D(4096, (1, 1), activation='relu', padding='valid', name='fc7'))
+        fc_end.add(nn.Dropout(0.5))
+        fc_end.add(nn.Conv2D(21, (1, 1), padding='valid', name='score-fr'))
 
     # Deconvolution
     score2 = nn.Conv2DTranspose(21, (4, 4), strides=2, name='score2')(net)
@@ -98,19 +108,23 @@ def get_crfrnn_model_def():
     # upscore = nn.Cropping2D(((31, 37), (31, 37)))(upsample)
     upscore = CroppingLayer2D(((31, 37), (31, 37)))(upsample)
 
-    output = CrfRnnLayer(image_dims=(height, width),
-                        num_classes=21,
-                        theta_alpha=160.,
-                        theta_beta=3.,
-                        theta_gamma=3.,
-                        num_iterations=10,
-                        name='crfrnn')([upscore, img_input])
+    output = nn.Sequential()
+    with output.name_scope():
+        output.add(deconv)
+        output.add(CrfRnnLayer(image_dims=(height, width),
+                            num_classes=21,
+                            theta_alpha=160.,
+                            theta_beta=3.,
+                            theta_gamma=3.,
+                            num_iterations=10,
+                            name='crfrnn')([upscore, img_input]))
 
 
 
     # # Build the model
 
     net = nn.Sequential(score_pool4)
-    model = Model(img_input, output, name='crfrnn_net')
+    with net.name_scope():
+        net.add(output)
 
-    return model
+    return  net

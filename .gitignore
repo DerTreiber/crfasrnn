@@ -1,2 +1,4 @@
 data/*.gz
 keras/crfrnn_keras_model.h5
+*.pyc
+gluon/src/cpp/high_dim_filter.so
