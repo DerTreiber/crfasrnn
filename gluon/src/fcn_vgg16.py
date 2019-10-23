@@ -7,8 +7,6 @@ from mxnet.gluon import nn
 from custom_layers import CroppingLayer2D, Add, Input, ConcatLayer, SequentialMultiInput
 
 
-channels, height, width = 3, 500, 500
-
 class FcnVGG16(nn.HybridBlock):
     def __init__(self, input_shape=(3,500,500), **kwargs):
         super(FcnVGG16, self).__init__(**kwargs)
@@ -18,7 +16,6 @@ class FcnVGG16(nn.HybridBlock):
         # VGG-16 convolution block 1
         self.block1 = nn.HybridSequential()
         with self.block1.name_scope():
-            # self.block1.add(img_input)
             self.block1.add(nn.Conv2D(64, (3, 3), activation='relu', padding=(100,100)))
             self.block1.add(nn.Conv2D(64, (3, 3), activation='relu'))
             self.block1.add(nn.MaxPool2D((2, 2), strides=(2, 2)))
@@ -43,7 +40,6 @@ class FcnVGG16(nn.HybridBlock):
         # VGG-16 convolution block 4
         self.block4 = nn.HybridSequential()
         with self.block4.name_scope():
-            # self.block4.add(self.block3)
             self.block4.add(nn.Conv2D(512, (3, 3), activation='relu'))
             self.block4.add(nn.Conv2D(512, (3, 3), activation='relu'))
             self.block4.add(nn.Conv2D(512, (3, 3), activation='relu'))
@@ -52,7 +48,6 @@ class FcnVGG16(nn.HybridBlock):
         # VGG-16 convolution block 5
         self.block5 = nn.HybridSequential()
         with self.block5.name_scope():
-            # self.block5.add(self.block4)
             self.block5.add(nn.Conv2D(512, (3, 3), activation='relu'))
             self.block5.add(nn.Conv2D(512, (3, 3), activation='relu'))
             self.block5.add(nn.Conv2D(512, (3, 3), activation='relu'))
@@ -77,28 +72,21 @@ class FcnVGG16(nn.HybridBlock):
         # Skip connections from pool4
         self.skip_4 = nn.HybridSequential()
         with self.skip_4.name_scope():
-            # self.skip_4.add(self.block4)
             self.skip_4.add(nn.Conv2D(21, (1, 1)))
             self.skip_4.add(CroppingLayer2D((5),(-5)))
-        
-        self.conc1 = SequentialMultiInput()
+
+        self.conc1 = nn.HybridSequential()
         with self.conc1.name_scope():
-            # self.conc1.add(ConcatLayer(self.deconv, self.skip_4))
-            
             self.conc1.add(nn.Conv2DTranspose(21, (4, 4), strides=2, use_bias=False))
 
         # Skip connections from pool3
         self.skip_3 = nn.HybridSequential()
         with self.skip_3.name_scope():
-            self.skip_3.add(self.block3)
             self.skip_3.add(nn.Conv2D(21, (1, 1)))
-            # score_pool3c = nn.Cropping2D((9, 9))(score_pool3)
             self.skip_3.add(CroppingLayer2D((9),(-9)))
-        
-        self.out = SequentialMultiInput()
-        with self.out.name_scope():
-            # self.out.add(ConcatLayer(self.skip_4, self.conc1))
 
+        self.out = nn.HybridSequential()
+        with self.out.name_scope():
             # Final up-sampling and cropping
             self.out.add(nn.Conv2DTranspose(21, (16, 16), strides=8, use_bias=False))
             self.out.add(CroppingLayer2D((31, 31), (-37, -37)))
@@ -119,7 +107,6 @@ if __name__ == '__main__':
     model.hybridize()
 
     symbol_data = mx.sym.var('data')
-    print(type(symbol_data))
 
     tmp = model(symbol_data)
 
