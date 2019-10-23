@@ -1,3 +1,7 @@
+'''
+https://discuss.mxnet.io/t/gluon-multi-input-block/1993/6?u=dertreiber
+'''
+
 from mxnet import gluon, nd, autograd
 from mxnet.gluon.nn import HybridSequential, HybridBlock, Dense
 from mxnet.gluon import Trainer

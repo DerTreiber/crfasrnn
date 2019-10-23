@@ -7,7 +7,7 @@ import mxnet as mx
 from mxnet import gluon, autograd, nd
 from mxnet.gluon.data.vision import MNIST
 from mxnet.gluon import nn
-from custom_layers import Add
+# from custom_layers import Add
 
 net1 = nn.Sequential()
 
@@ -23,9 +23,9 @@ with net2.name_scope():
 net3 = nn.Sequential()
 
 with net3.name_scope():
-    net3.add(nn.Conc)
+    # net3.add(nn.Conc)
     net3.add(nn.Dense(10, activation='relu'))
-    net3.add()
+    # net3.add()
 
 input = np.random.random((500,500,3))
 
