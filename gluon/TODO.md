@@ -4,6 +4,7 @@ this is just for notes and todo points
 
 ## fcn_vgg16
 
+- implemented prelimary network, network graph looks fine
 - test performance of fcn
 - understand how skip connections work
 - verify correct adaption from keras model, especially padding in conv layers

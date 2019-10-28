@@ -85,18 +85,18 @@ class FcnVGG16(nn.HybridBlock):
             self.skip_3.add(nn.Conv2D(21, (1, 1)))
             self.skip_3.add(CroppingLayer2D((9),(-9)))
 
+        # Final up-sampling and cropping
         self.out = nn.HybridSequential()
         with self.out.name_scope():
-            # Final up-sampling and cropping
             self.out.add(nn.Conv2DTranspose(21, (16, 16), strides=8, use_bias=False))
             self.out.add(CroppingLayer2D((31, 31), (-37, -37)))
 
     def hybrid_forward(self, F, X):
-        out_block1_3 = self.block3(X)
-        out_block4 = self.block4(out_block1_3)
+        out_block3 = self.block3(X)
+        out_block4 = self.block4(out_block3)
         out_block5_fc_deconv = self.deconv(out_block4)
         out_skip4 = self.skip_4(out_block4)
-        out_skip3 = self.skip_3(out_block5_fc_deconv)
+        out_skip3 = self.skip_3(out_block3)
         out_conc1 = self.conc1(out_block5_fc_deconv + out_skip4)
         out = self.out(out_skip3 + out_conc1)
 
