@@ -220,7 +220,8 @@ void ModifiedPermutohedral::init(const float* features, int num_dimensions, int 
 			sum += v;
 		}
 
-		// Find the simplex we are in and store it in rank (where rank describes what position coorinate i has in the sorted order of the features values)
+		// Find the simplex we are in and store it in rank (where rank describes
+		// what position coorinate i has in the sorted order of the features values)
 		for( int i=0; i<=d_; i++ )
 			rank[i] = Zero;
 		for( int i=0; i<d_; i++ ){
@@ -390,7 +391,8 @@ void ModifiedPermutohedral::init (const float* features, int num_dimensions, int
 			sum += rd2*down_factor;
 		}
 
-		// Find the simplex we are in and store it in rank (where rank describes what position coorinate i has in the sorted order of the features values)
+		// Find the simplex we are in and store it in rank (where rank describes
+		// what position coorinate i has in the sorted order of the features values)
 		for( int i=0; i<=d_; i++ )
 			rank[i] = 0;
 		for( int i=0; i<d_; i++ ){

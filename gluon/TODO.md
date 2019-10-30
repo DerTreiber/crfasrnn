@@ -12,8 +12,15 @@ this is just for notes and todo points
 
 ## crfrnn
 
-- implement crfrnn layer in mxnet/gluon
-- look up if implementation of permutohedral lattices exist
+### implement crfrnn layer in mxnet/gluon
+
+- define coarse structure
+- possibly rewrite working steps as seperate layers
+
+### permutohedral lattice
+
+- look up if implementation of permutohedral lattice filter in gluon already exists, which doesn't seem the case
+- implement permutohedral lattice filter or find temporary workaround
 
 ## next steps:
 
@@ -33,3 +40,4 @@ this is just for notes and todo points
 
 - when rendering a mxnet model graph activate a conda env with graphviz installed
 - /usr/bin/python doesn't seem to work
+- understand what the difference between mxnet nd and symbol is

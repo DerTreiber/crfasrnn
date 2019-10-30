@@ -42,3 +42,4 @@ digraph.render()
 # for key, layer in model._children.items():
 #     # print(key, layer)
 #     print(layer.collect_params())
+

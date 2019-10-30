@@ -9,14 +9,16 @@ custom_module = high_dim_filter_loader.custom_module
 
 
 def _diagonal_initializer(shape):
-    return np.eye(shape[0], shape[1], dtype=np.float32)
+    return nd.array(np.eye(shape[0], shape[1], dtype=np.float32))
 
 
 def _potts_model_initializer(shape):
-    return -1 * _diagonal_initializer(shape)
+    return nd.array(-1 * _diagonal_initializer(shape))
 
 
-class CrfRnnLayer(nn.Block):
+### TODO encapsulate single steps of mean-field algorithm as layers
+
+class CrfRnnLayer(nn.HybridBlock):
     """ Implements the CRF-RNN layer described in:
 
     Conditional Random Fields as Recurrent Neural Networks,
@@ -27,6 +29,8 @@ class CrfRnnLayer(nn.Block):
     def __init__(self, image_dims, num_classes,
                  theta_alpha, theta_beta, theta_gamma,
                  num_iterations, **kwargs):
+        super(CrfRnnLayer, self).__init__(**kwargs)
+
         self.image_dims = image_dims
         self.num_classes = num_classes
         self.theta_alpha = theta_alpha
@@ -36,32 +40,40 @@ class CrfRnnLayer(nn.Block):
         self.spatial_ker_weights = None
         self.bilateral_ker_weights = None
         self.compatibility_matrix = None
-        super(CrfRnnLayer, self).__init__(**kwargs)
+        self.add_vars()
 
-    def build(self, input_shape):
+    def add_vars(self):
+        '''
+        https://discuss.mxnet.io/t/hybridblock-hybrid-forward-extra-arguments-for-parameters/1764/4?u=dertreiber
+        https://discuss.mxnet.io/t/how-to-initialize-weights-of-conv2d-layer-given-an-ndarray/4442/2?u=dertreiber
+        '''
+
+        ### TODO write custom initializers
+
+        shape = (self.num_classes, self.num_classes)
+
         # Weights of the spatial kernel
-        self.spatial_ker_weights = self.add_weight(name='spatial_ker_weights',
-                                                   shape=(self.num_classes, self.num_classes),
-                                                   initializer=_diagonal_initializer,
-                                                   trainable=True)
+        self.spatial_ker_weights = self.params.get('spatial_ker_weights',
+                                                   shape=shape
+                                                   ).initialize(mx.init.Constant(_diagonal_initializer(shape)))
+
 
         # Weights of the bilateral kernel
-        self.bilateral_ker_weights = self.add_weight(name='bilateral_ker_weights',
-                                                     shape=(self.num_classes, self.num_classes),
-                                                     initializer=_diagonal_initializer,
-                                                     trainable=True)
+        self.bilateral_ker_weights = self.params.get('bilateral_ker_weights',
+                                                     shape=shape
+                                                     ).initialize(mx.init.Constant(_diagonal_initializer(shape)))
 
         # Compatibility matrix
-        self.compatibility_matrix = self.add_weight(name='compatibility_matrix',
-                                                    shape=(self.num_classes, self.num_classes),
-                                                    initializer=_potts_model_initializer,
-                                                    trainable=True)
+        self.compatibility_matrix = self.params.get('compatibility_matrix',
+                                                    shape=shape
+                                                    ).initialize(mx.init.Constant(_potts_model_initializer(shape)))
 
-        super(CrfRnnLayer, self).build(input_shape)
+        # self.fc3_weight = self.params.get('fc3_weight', shape=(10, 84)).initialize(mx.init.Xavier())
 
-    def call(self, inputs):
-        unaries = tf.transpose(inputs[0][0, :, :, :], perm=(2, 0, 1))
-        rgb = tf.transpose(inputs[1][0, :, :, :], perm=(2, 0, 1))
+    def forward(self, F, x):
+        ### transform inputs
+        unaries = F.transpose(x[0][0, :, :, :], axes=(2, 0, 1))
+        rgb = F.transpose(x[1][0, :, :, :], axes=(2, 0, 1))
 
         c, h, w = self.num_classes, self.image_dims[0], self.image_dims[1]
         all_ones = np.ones((c, h, w), dtype=np.float32)
@@ -75,7 +87,7 @@ class CrfRnnLayer(nn.Block):
         q_values = unaries
 
         for i in range(self.num_iterations):
-            softmax_out = tf.nn.softmax(q_values, 0)
+            softmax_out = F.softmax(q_values)
 
             # Spatial filtering
             spatial_out = custom_module.high_dim_filter(softmax_out, rgb, bilateral=False,
@@ -88,20 +100,26 @@ class CrfRnnLayer(nn.Block):
                                                           theta_beta=self.theta_beta)
             bilateral_out = bilateral_out / bilateral_norm_vals
 
+            ### TODO check for correct dimensions in dot multiplication
             # Weighting filter outputs
-            message_passing = (tf.matmul(self.spatial_ker_weights,
-                                         tf.reshape(spatial_out, (c, -1))) +
-                               tf.matmul(self.bilateral_ker_weights,
-                                         tf.reshape(bilateral_out, (c, -1))))
+            message_passing = (F.batch_dot(self.spatial_ker_weights,
+                                         F.reshape(spatial_out, (c, -1))) +
+                               F.batch_dot(self.bilateral_ker_weights,
+                                         F.reshape(bilateral_out, (c, -1))))
 
             # Compatibility transform
-            pairwise = tf.matmul(self.compatibility_matrix, message_passing)
+            pairwise = F.batch_dot(self.compatibility_matrix, message_passing)
 
             # Adding unary potentials
-            pairwise = tf.reshape(pairwise, (c, h, w))
+            pairwise = F.reshape(pairwise, (c, h, w))
             q_values = unaries - pairwise
 
-        return tf.transpose(tf.reshape(q_values, (1, c, h, w)), perm=(0, 2, 3, 1))
+        return F.transpose(F.reshape(q_values, (1, c, h, w)), axes=(0, 2, 3, 1))
 
     def compute_output_shape(self, input_shape):
         return input_shape
+
+# test_arr = nd.array([[[ 1,  2,  3],[ 4,  5,  6]],[[ 7,  8,  9],[10, 11, 12]]], ctx=None)
+
+if __name__ == '__main__':
+    print(mx.init.Constant(1))

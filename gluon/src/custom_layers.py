@@ -18,7 +18,7 @@ class CroppingLayer2D(nn.HybridBlock):
         self.end = end
         self.step = step
 
-    def forward(self, x):
+    def forward(self, F, x):
         return x.slice(begin=self.begin, end=self.end, step=self.step)
 
 class Input(nn.HybridBlock):
@@ -108,4 +108,3 @@ if __name__ == '__main__':
     out2 = net2(x)
 
     out = conc(out1, out2)
-    
