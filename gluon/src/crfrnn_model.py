@@ -28,12 +28,12 @@ class SegCRFRNN(nn.HybridBlock):
         self.crfrnn = nn.Sequential()
         with self.crfrnn.name_scope():
             self.crfrnn.add(CrfRnnLayer(image_dims=(input_shape[1], input_shape[0]),
-                                   num_classes=21,
-                                   theta_alpha=160.,
-                                   theta_beta=3.,
-                                   theta_gamma=3.,
-                                   num_iterations=10,
-                                   name='crfrnn'))
+                                        num_classes=21,
+                                        theta_alpha=160.,
+                                        theta_beta=3.,
+                                        theta_gamma=3.,
+                                        num_iterations=10,
+                                        name='crfrnn'))
 
     def hybrid_forward(self, F, X, *args, **kwargs):
         unary_potentials = self.fcn(X)

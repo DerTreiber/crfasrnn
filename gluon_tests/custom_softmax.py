@@ -1,4 +1,3 @@
-
 ### https://github.com/apache/incubator-mxnet/blob/master/example/numpy-ops/custom_softmax.py
 ### https://mxnet.incubator.apache.org/api/faq/new_op
 
@@ -18,6 +17,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+
+'''
+https://github.com/apache/incubator-mxnet/tree/master/src/operator/tensor
+https://github.com/apache/incubator-mxnet/blob/master/example/numpy-ops/custom_softmax.py
+'''
 
 # pylint: skip-file
 import mxnet as mx
