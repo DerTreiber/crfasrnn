@@ -1,6 +1,6 @@
 # my TODOs
 
-this is just for notes and todo points
+this is just a personal todo list and collection of more or less relevant notes
 
 ## fcn_vgg16
 
@@ -20,7 +20,11 @@ this is just for notes and todo points
 ### permutohedral lattice
 
 - look up if implementation of permutohedral lattice filter in gluon already exists, which doesn't seem the case
-- implement permutohedral lattice filter or find temporary workaround
+- python implementation found at: https://github.com/idofr/pymutohedral_lattice
+- adapt this python implementation as custom operator for mxnet
+- current problem: understanding how to make bilateral filters, passing theta arguments like in the original crf implementation
+- python custom mxnet operator should be just a temporary workaround, in the future a custom mxnet operator in cpp should replace it
+- python implementation very slow, not making use of gpu
 
 ## next steps:
 
@@ -41,3 +45,4 @@ this is just for notes and todo points
 - when rendering a mxnet model graph activate a conda env with graphviz installed
 - /usr/bin/python doesn't seem to work
 - understand what the difference between mxnet nd and symbol is
+- understand permutohedral lattice and high dimensional filtering

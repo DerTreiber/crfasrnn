@@ -31,14 +31,6 @@ import logging
 
 
 class Softmax(mx.operator.CustomOp):
-    def __init__(self, bilateral=True, theta_alpha=None, theta_beta=None, theta_gamma=None):
-        self.bilateral = bilateral
-        self.theta_alpha = theta_alpha
-        self.theta_beta = theta_beta
-        self.theta_gamma = theta_gamma
-
-        # super(Softmax, self).__init__()
-
     def forward(self, is_train, req, in_data, out_data, aux):
         # print(self.bilateral, self.theta_alpha, self.theta_beta)
         x = in_data[0].asnumpy()
@@ -54,12 +46,8 @@ class Softmax(mx.operator.CustomOp):
 
 @mx.operator.register("softmax")
 class SoftmaxProp(mx.operator.CustomOpProp):
-    def __init__(self, bilateral=True, theta_alpha=None, theta_beta=None, theta_gamma=None):
+    def __init__(self):
         super(SoftmaxProp, self).__init__(need_top_grad=False)
-        self.bilateral = bilateral
-        self.theta_alpha = theta_alpha
-        self.theta_beta = theta_beta
-        self.theta_gamma = theta_gamma
 
     def list_arguments(self):
         return ['data', 'label']
@@ -77,7 +65,7 @@ class SoftmaxProp(mx.operator.CustomOpProp):
         return in_type, [in_type[0]], []
 
     def create_operator(self, ctx, shapes, dtypes):
-        return Softmax(bilateral=self.bilateral, theta_alpha=self.theta_alpha, theta_beta=self.theta_beta, theta_gamma=self.theta_gamma)
+        return Softmax()
 
 # define mlp
 
@@ -88,7 +76,7 @@ fc2 = mx.symbol.FullyConnected(data = act1, name = 'fc2', num_hidden = 64)
 act2 = mx.symbol.Activation(data = fc2, name='relu2', act_type="relu")
 fc3 = mx.symbol.FullyConnected(data = act2, name='fc3', num_hidden=10)
 #mlp = mx.symbol.Softmax(data = fc3, name = 'softmax')
-mlp = mx.symbol.Custom(data=fc3, bilateral=True, theta_alpha=1.0, theta_beta=1.0, theta_gamma=2.0, name='softmax', op_type='softmax')
+mlp = mx.symbol.Custom(data=fc3, name='softmax', op_type='softmax')
 
 # data
 

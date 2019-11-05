@@ -18,11 +18,34 @@ from pymutohedral_lattice.permutohedral_lattice import PermutohedralLattice
 
 @mx.operator.register('HighDimFilter')
 class _high_dim_filter_grad(mx.operator.CustomOp):
+    def __init__(self, bilateral=True, theta_alpha=None, theta_beta=None, theta_gamma=None):
+        super(_high_dim_filter_grad, self).__init__()
+
+        self.bilateral = bilateral
+        self.theta_alpha = theta_alpha
+        self.theta_beta = theta_beta
+        self.theta_gamma = theta_gamma
+
+
     def forward(self, is_train, req, in_data, out_data, aux):
-        x = in_data[0].asnumpy()
-        ### TODO do permutohedral stuff
+        ### TODO write as mxnet operators
         ###
-        y = call_permutohedral_lattice()
+        im = in_data[0].asnumpy()
+        invSpatialStdev = float(1. / 5.)
+        invColorStdev = float(1. / .125)
+
+        # Construct the position vectors out of x, y, r, g, and b.
+        positions = np.zeros((im.shape[0], im.shape[1], 5), dtype='float32')
+        for r in range(im.shape[0]):
+            for c in range(im.shape[1]):
+                positions[r, c, 0] = invSpatialStdev * c
+                positions[r, c, 1] = invSpatialStdev * r
+                positions[r, c, 2] = invColorStdev * im[r, c, 0]
+                positions[r, c, 3] = invColorStdev * im[r, c, 1]
+                positions[r, c, 4] = invColorStdev * im[r, c, 2]
+
+        ### TODO pass arguments bilateral and thetas
+        y = PermutohedralLattice.filter(im, positions)
         self.assign(out_data[0], req[0], mx.nd.array(y))
 
     def backward(self, req, out_grad, in_data, out_data, in_grad, aux):
@@ -35,15 +58,16 @@ class _high_dim_filter_grad(mx.operator.CustomOp):
 
 @mx.operator.register("HighDimFilter")
 class _high_dim_filter_gradProp(mx.operator.CustomOpProp):
-    def __init__(self):
+    def __init__(self, bilateral=True, theta_alpha=None, theta_beta=None, theta_gamma=None):
         super(_high_dim_filter_gradProp, self).__init__(need_top_grad=False)
 
+        self.bilateral = bilateral
+        self.theta_alpha = theta_alpha
+        self.theta_beta = theta_beta
+        self.theta_gamma = theta_gamma
+
     def list_arguments(self):
-        return ['data',
-                'bilateral',
-                'theta_alpha',
-                'theta_beta',
-                'theta_gamma']
+        return ['data', 'label']
 
     def list_outputs(self):
         return ['output']
@@ -58,28 +82,28 @@ class _high_dim_filter_gradProp(mx.operator.CustomOpProp):
         return in_type, [in_type[0]], []
 
     def create_operator(self, ctx, shapes, dtypes):
-        return _high_dim_filter_grad()
+        return _high_dim_filter_grad(bilateral=self.bilateral, theta_alpha=self.theta_alpha, theta_beta=self.theta_beta, theta_gamma=self.theta_gamma)
 
-def call_permutohedral_lattice(im, bilateral=True):
-    '''Calls python implementation of permutohedral lattice
-    Reference: implementation in https://github.com/idofr/pymutohedral_lattice
-    '''
-    invSpatialStdev = float(1. / 5.)
-    invColorStdev = float(1. / .125)
+# def call_permutohedral_lattice(im):
+#     '''Calls python implementation of permutohedral lattice
+#     Reference: implementation in https://github.com/idofr/pymutohedral_lattice
+#     '''
+#     invSpatialStdev = float(1. / 5.)
+#     invColorStdev = float(1. / .125)
 
-    ### TODO put constructor for image positions in crfrnn layer as it stays the same for fixed input
-    # Construct the position vectors out of x, y, r, g, and b.
-    positions = np.zeros((im.shape[0], im.shape[1], 5), dtype='float32')
-    for r in range(im.shape[0]):
-        for c in range(im.shape[1]):
-            positions[r, c, 0] = invSpatialStdev * c
-            positions[r, c, 1] = invSpatialStdev * r
-            positions[r, c, 2] = invColorStdev * im[r, c, 0]
-            positions[r, c, 3] = invColorStdev * im[r, c, 1]
-            positions[r, c, 4] = invColorStdev * im[r, c, 2]
+#     ### TODO put constructor for image positions in crfrnn layer as it stays the same for fixed input
+#     # Construct the position vectors out of x, y, r, g, and b.
+#     positions = np.zeros((im.shape[0], im.shape[1], 5), dtype='float32')
+#     for r in range(im.shape[0]):
+#         for c in range(im.shape[1]):
+#             positions[r, c, 0] = invSpatialStdev * c
+#             positions[r, c, 1] = invSpatialStdev * r
+#             positions[r, c, 2] = invColorStdev * im[r, c, 0]
+#             positions[r, c, 3] = invColorStdev * im[r, c, 1]
+#             positions[r, c, 4] = invColorStdev * im[r, c, 2]
 
-    out = PermutohedralLattice.filter(im, positions)
-    return out
+#     out = PermutohedralLattice.filter(im, positions)
+#     return out
 
 if __name__ == '__main__':
     data = mx.symbol.Variable('data')
