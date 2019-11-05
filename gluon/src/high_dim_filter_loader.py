@@ -2,12 +2,16 @@
 https://mxnet.incubator.apache.org/api/faq/new_op
 '''
 
+# import sys
+# sys.path.insert(0, 'pymutohedral_lattice')
+
 import os
 import mxnet as mx
 from mxnet import nd
 from mxnet.test_utils import get_mnist_iterator
 import numpy as np
 import logging
+from pymutohedral_lattice.permutohedral_lattice import PermutohedralLattice
 
 
 ### TODO set attributes
@@ -15,10 +19,19 @@ import logging
 @mx.operator.register('HighDimFilter')
 class _high_dim_filter_grad(mx.operator.CustomOp):
     def forward(self, is_train, req, in_data, out_data, aux):
-        return 42
+        x = in_data[0].asnumpy()
+        ### TODO do permutohedral stuff
+        ###
+        y = call_permutohedral_lattice()
+        self.assign(out_data[0], req[0], mx.nd.array(y))
 
     def backward(self, req, out_grad, in_data, out_data, in_grad, aux):
-        return 42
+        l = in_data[1].asnumpy().ravel().astype(np.int)
+        y = out_data[0].asnumpy()
+        ### TODO do permutohedral stuff
+        ###
+
+        self.assign(in_grad[0], req[0], mx.nd.array(y))
 
 @mx.operator.register("HighDimFilter")
 class _high_dim_filter_gradProp(mx.operator.CustomOpProp):
@@ -26,7 +39,11 @@ class _high_dim_filter_gradProp(mx.operator.CustomOpProp):
         super(_high_dim_filter_gradProp, self).__init__(need_top_grad=False)
 
     def list_arguments(self):
-        return ['data']
+        return ['data',
+                'bilateral',
+                'theta_alpha',
+                'theta_beta',
+                'theta_gamma']
 
     def list_outputs(self):
         return ['output']
@@ -43,34 +60,26 @@ class _high_dim_filter_gradProp(mx.operator.CustomOpProp):
     def create_operator(self, ctx, shapes, dtypes):
         return _high_dim_filter_grad()
 
+def call_permutohedral_lattice(im, bilateral=True):
+    '''Calls python implementation of permutohedral lattice
+    Reference: implementation in https://github.com/idofr/pymutohedral_lattice
+    '''
+    invSpatialStdev = float(1. / 5.)
+    invColorStdev = float(1. / .125)
 
-### TODO replace load_op_library
-# custom_module = tf.load_op_library(os.path.join(os.path.dirname(__file__), 'cpp', 'high_dim_filter.so'))
+    ### TODO put constructor for image positions in crfrnn layer as it stays the same for fixed input
+    # Construct the position vectors out of x, y, r, g, and b.
+    positions = np.zeros((im.shape[0], im.shape[1], 5), dtype='float32')
+    for r in range(im.shape[0]):
+        for c in range(im.shape[1]):
+            positions[r, c, 0] = invSpatialStdev * c
+            positions[r, c, 1] = invSpatialStdev * r
+            positions[r, c, 2] = invColorStdev * im[r, c, 0]
+            positions[r, c, 3] = invColorStdev * im[r, c, 1]
+            positions[r, c, 4] = invColorStdev * im[r, c, 2]
 
-# @ops.RegisterGradient('HighDimFilter')
-# def _high_dim_filter_grad(op, grad):
-#     """ Gradients for the HighDimFilter op. We only need to calculate the gradients
-#     w.r.t. the first input (unaries) as we never need to backprop errors to the
-#     second input (RGB values of the image).
-
-#     Args:
-#     op: The `high_dim_filter` operation that we are differentiating.
-#     grad: Gradients with respect to the output of the `high_dim_filter` op.
-
-#     Returns:
-#     Gradients with respect to the input of `high_dim_filter`.
-#     """
-
-#     rgb = op.inputs[1]
-#     grad_vals = custom_module.high_dim_filter(grad, rgb,
-#                                               bilateral=op.get_attr('bilateral'),
-#                                               theta_alpha=op.get_attr('theta_alpha'),
-#                                               theta_beta=op.get_attr('theta_beta'),
-#                                               theta_gamma=op.get_attr('theta_gamma'),
-#                                               backwards=True)
-
-#     ### TODO replace tf.zeros_like
-#     return [grad_vals, tf.zeros_like(rgb)]
+    out = PermutohedralLattice.filter(im, positions)
+    return out
 
 if __name__ == '__main__':
     data = mx.symbol.Variable('data')
