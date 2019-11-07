@@ -29,22 +29,14 @@ class _high_dim_filter_grad(mx.operator.CustomOp):
 
     def forward(self, is_train, req, in_data, out_data, aux):
         ### TODO write as mxnet operators
-        ###
+        ### conversion to numpy for convenience
         im = in_data[0].asnumpy()
-        invSpatialStdev = float(1. / 5.)
-        invColorStdev = float(1. / .125)
 
-        # Construct the position vectors out of x, y, r, g, and b.
-        positions = np.zeros((im.shape[0], im.shape[1], 5), dtype='float32')
-        for r in range(im.shape[0]):
-            for c in range(im.shape[1]):
-                positions[r, c, 0] = invSpatialStdev * c
-                positions[r, c, 1] = invSpatialStdev * r
-                positions[r, c, 2] = invColorStdev * im[r, c, 0]
-                positions[r, c, 3] = invColorStdev * im[r, c, 1]
-                positions[r, c, 4] = invColorStdev * im[r, c, 2]
+        if self.bilateral:
+            positions = compute_bilateral_kernel(im, self.theta_alpha, self.theta_beta)
+        elif not self.bilateral:
+            positions = compute_spatial_kernel(im, self.theta_gamma)
 
-        ### TODO pass arguments bilateral and thetas
         y = PermutohedralLattice.filter(im, positions)
         self.assign(out_data[0], req[0], mx.nd.array(y))
 
@@ -52,7 +44,10 @@ class _high_dim_filter_grad(mx.operator.CustomOp):
         l = in_data[1].asnumpy().ravel().astype(np.int)
         y = out_data[0].asnumpy()
         ### TODO do permutohedral stuff
-        ###
+        ### backward pass: pass error through the same M gaussian filters in reverse order
+        ### in terms of permutohedral lattice operations this means that the order is reversed only in the blur stage,
+        ### while keeping the order for building the permutohedral lattice, splatting, and slicing stays the same
+        ### as in the forward pass.
 
         self.assign(in_grad[0], req[0], mx.nd.array(y))
 
@@ -84,26 +79,29 @@ class _high_dim_filter_gradProp(mx.operator.CustomOpProp):
     def create_operator(self, ctx, shapes, dtypes):
         return _high_dim_filter_grad(bilateral=self.bilateral, theta_alpha=self.theta_alpha, theta_beta=self.theta_beta, theta_gamma=self.theta_gamma)
 
-# def call_permutohedral_lattice(im):
-#     '''Calls python implementation of permutohedral lattice
-#     Reference: implementation in https://github.com/idofr/pymutohedral_lattice
-#     '''
-#     invSpatialStdev = float(1. / 5.)
-#     invColorStdev = float(1. / .125)
+def compute_spatial_kernel(im, theta_gamma):
 
-#     ### TODO put constructor for image positions in crfrnn layer as it stays the same for fixed input
-#     # Construct the position vectors out of x, y, r, g, and b.
-#     positions = np.zeros((im.shape[0], im.shape[1], 5), dtype='float32')
-#     for r in range(im.shape[0]):
-#         for c in range(im.shape[1]):
-#             positions[r, c, 0] = invSpatialStdev * c
-#             positions[r, c, 1] = invSpatialStdev * r
-#             positions[r, c, 2] = invColorStdev * im[r, c, 0]
-#             positions[r, c, 3] = invColorStdev * im[r, c, 1]
-#             positions[r, c, 4] = invColorStdev * im[r, c, 2]
+    positions = np.zeros((im.shape[0], im.shape[1], 2), dtype='float32')
+    for r in range(im.shape[0]):
+        for c in range(im.shape[1]):
+            positions[r, c, 0] = theta_gamma * c
+            positions[r, c, 1] = theta_gamma * r
 
-#     out = PermutohedralLattice.filter(im, positions)
-#     return out
+    return positions
+
+def compute_bilateral_kernel(im, theta_alpha, theta_beta):
+
+    positions = np.zeros((im.shape[0], im.shape[1], 5), dtype='float32')
+    for r in range(im.shape[0]):
+        for c in range(im.shape[1]):
+            positions[r, c, 0] = theta_alpha * c
+            positions[r, c, 1] = theta_alpha * r
+            positions[r, c, 2] = theta_beta * im[r, c, 0]
+            positions[r, c, 3] = theta_beta * im[r, c, 1]
+            positions[r, c, 4] = theta_beta * im[r, c, 2]
+
+    return positions
+
 
 if __name__ == '__main__':
     data = mx.symbol.Variable('data')

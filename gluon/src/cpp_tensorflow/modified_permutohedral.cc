@@ -132,7 +132,7 @@ public:
 };
 
 /************************************************/
-/***          ModifiedPermutohedral Lattice           ***/
+/***      ModifiedPermutohedral Lattice       ***/
 /************************************************/
 
 ModifiedPermutohedral::ModifiedPermutohedral():N_( 0 ), M_( 0 ), d_( 0 ) {

@@ -5,6 +5,7 @@ this is just a personal todo list and collection of more or less relevant notes
 ## fcn_vgg16
 
 - implemented prelimary network, network graph looks fine
+- make graph more readable, add names to operations where possible, turn by 90°
 - test performance of fcn
 - understand how skip connections work
 - verify correct adaption from keras model, especially padding in conv layers
@@ -19,19 +20,21 @@ this is just a personal todo list and collection of more or less relevant notes
 
 ### permutohedral lattice
 
-- look up if implementation of permutohedral lattice filter in gluon already exists, which doesn't seem the case
-- python implementation found at: https://github.com/idofr/pymutohedral_lattice
+- ~~look up if implementation of permutohedral lattice filter in gluon already exist~~ doesn't seem the case
+- python implementation of permutohedral lattice filter found at: https://github.com/idofr/pymutohedral_lattice
 - adapt this python implementation as custom operator for mxnet
-- current problem: understanding how to make bilateral filters, passing theta arguments like in the original crf implementation
+- current problem: understanding how to make bilateral filters, adjusting implementation to account for theta variables
 - python custom mxnet operator should be just a temporary workaround, in the future a custom mxnet operator in cpp should replace it
-- python implementation very slow, not making use of gpu
+- python implementation very slow in comparison to cpp implementation
+- backwards pass needs to be implemented. error gradients are computed by passing the error through the same M filters in reverse order,
+which means in terms of permutohedral lattice operations to switch filters in the blur stage, while keeping the rest (building the permutohedral
+lattice, the splatting, and splicing) the same as in the forward pass (refer to CRF-RNN paper section 4.2)
 
 ## next steps:
 
 - combine models
 - define data loader
 - train model (at least with subset)
-
 
 ## next steps: emadl
 
