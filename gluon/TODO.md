@@ -29,6 +29,7 @@ this is just a personal todo list and collection of more or less relevant notes
 - backwards pass needs to be implemented. error gradients are computed by passing the error through the same M filters in reverse order,
 which means in terms of permutohedral lattice operations to switch filters in the blur stage, while keeping the rest (building the permutohedral
 lattice, the splatting, and splicing) the same as in the forward pass (refer to CRF-RNN paper section 4.2)
+- this is achieved by setting the reverse flag in the blur function
 
 ## next steps:
 

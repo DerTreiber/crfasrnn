@@ -30,24 +30,31 @@ class _high_dim_filter_grad(mx.operator.CustomOp):
     def forward(self, is_train, req, in_data, out_data, aux):
         ### TODO write as mxnet operators
         ### conversion to numpy for convenience
-        im = in_data[0].asnumpy()
+        y = in_data[0].asnumpy()
 
         if self.bilateral:
-            positions = compute_bilateral_kernel(im, self.theta_alpha, self.theta_beta)
+            positions = compute_bilateral_kernel(y, self.theta_alpha, self.theta_beta)
         elif not self.bilateral:
-            positions = compute_spatial_kernel(im, self.theta_gamma)
+            positions = compute_spatial_kernel(y, self.theta_gamma)
 
-        y = PermutohedralLattice.filter(im, positions)
+        y = PermutohedralLattice.filter(y, positions)
         self.assign(out_data[0], req[0], mx.nd.array(y))
 
     def backward(self, req, out_grad, in_data, out_data, in_grad, aux):
-        l = in_data[1].asnumpy().ravel().astype(np.int)
         y = out_data[0].asnumpy()
         ### TODO do permutohedral stuff
         ### backward pass: pass error through the same M gaussian filters in reverse order
-        ### in terms of permutohedral lattice operations this means that the order is reversed only in the blur stage,
+        ### in terms of permutohedral lattice operations this can be accomplished by reversing the order in the blur stage,
         ### while keeping the order for building the permutohedral lattice, splatting, and slicing stays the same
         ### as in the forward pass.
+
+
+        if self.bilateral:
+            positions = compute_bilateral_kernel(y, self.theta_alpha, self.theta_beta)
+        elif not self.bilateral:
+            positions = compute_spatial_kernel(y, self.theta_gamma)
+
+        y = PermutohedralLattice.filter(y, positions, reverse=True)
 
         self.assign(in_grad[0], req[0], mx.nd.array(y))
 
