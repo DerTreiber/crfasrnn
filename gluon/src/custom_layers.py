@@ -18,7 +18,7 @@ class CroppingLayer2D(nn.HybridBlock):
         self.end = end
         self.step = step
 
-    def forward(self, F, x):
+    def hybrid_forward(self, F, x):
         return x.slice(begin=self.begin, end=self.end, step=self.step)
 
 class Input(nn.HybridBlock):
@@ -26,8 +26,8 @@ class Input(nn.HybridBlock):
     def __init__(self, **kwargs):
         super(Input, self).__init__(**kwargs)
 
-    def forward(self, input):
-        return input
+    def hybrid_forward(self, F, x):
+        return x
 
 class Add(nn.HybridBlock):
 
@@ -69,6 +69,31 @@ class ConcatLayer(nn.HybridBlock):
             outputs.append(layer(input))
         return F.concat(*outputs)
 
+class MaxPool2DSamePadding(nn.HybridBlock):
+    '''Expected to have the same output as tensorflow 'same' padding.
+
+    Achieve 'same' padding same as in tensorflow keras:
+    https://discuss.mxnet.io/t/pooling-and-convolution-with-same-mode/528/2
+    Essentially: kernel_size=(k, k) -> padding=(k//2, k//2)
+    If k is even, slice off first column and row.
+    if k%2 == 0:
+        pool = pool[:,:,1:,1:] <- replace this with slice operator
+    '''
+
+    def __init__(self, kernel_size, strides=(2, 2), **kwargs):
+        self.kernel_size = kernel_size
+        self.strides = strides
+        super(MaxPool2DSamePadding, self).__init__(**kwargs)
+        self.net = nn.HybridSequential()
+        with self.net.name_scope():
+            self.net.add(nn.MaxPool2D(self.kernel_size, strides=self.strides))
+
+    def hybrid_forward(self, F, x):
+        pool = self.net(x)
+        if (self.kernel_size[0] % 2) == 0:
+            pool = pool.slice(begin=(0,0,1,1), end=(None, None, None, None))
+        return pool
+
 # class LogsDataset(Dataset):
 #     def __init__(self):
 #         self.len = int(1024)
@@ -89,22 +114,18 @@ if __name__ == '__main__':
     # symbol_data = mx.sym.var('data')
 
     import numpy as np
-    arr = np.random.rand(28, 28, 3)
+    arr = np.random.rand(5, 3, 28, 28)
 
-    x = mx.nd.array(arr, dtype=np.float)
+    xs = mx.nd.array(arr, dtype=np.float)
+    h, w = xs.shape[:2]
 
-    # x = mx.nd.slice(data=x, begin=(2,4), end=(-2, -4))
+    xs = xs.slice(begin=(0,0,1,1), end=(None, None, None, None))
+    print(xs.shape)
 
-    net = mx.gluon.nn.Sequential()
+    net = MaxPool2DSamePadding((2,2), strides=(2,2))
 
-    conc = ConcatLayer()
+    net.hybridize()
 
-    net1 = nn.Dense(10, activation='relu')
-    net2 = nn.Dense(10, activation='relu')
+    xs = net(xs)
 
-    net1.initialize(mx.init.Normal(sigma=1.), ctx=mx.cpu())
-
-    out1 = net1(x)
-    out2 = net2(x)
-
-    out = conc(out1, out2)
+    print(xs)

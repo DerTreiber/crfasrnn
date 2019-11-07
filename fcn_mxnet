@@ -1,0 +1,149 @@
+digraph fcn_mxnet {
+	data [label=data fillcolor="#8dd3c7" fixedsize=true height=0.8034 shape=oval style=filled width=1.3]
+	hybridsequential0_conv0_fwd [label="Convolution
+3x3/1x1, 64" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential0_conv0_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential0_conv1_fwd [label="Convolution
+3x3/1x1, 64" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential0_conv1_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential0_hybridsequential0_pool0_fwd [label="Pooling
+max, 2x2/2x2" fillcolor="#80b1d3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential0_maxpool2dsamepadding0_slice0 [label=hybridsequential0_maxpool2dsamepadding0_slice0 fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential1_conv0_fwd [label="Convolution
+3x3/1x1, 128" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential1_conv0_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential1_conv1_fwd [label="Convolution
+3x3/1x1, 128" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential1_conv1_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential1_hybridsequential0_pool0_fwd [label="Pooling
+max, 2x2/2x2" fillcolor="#80b1d3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential1_maxpool2dsamepadding0_slice0 [label=hybridsequential1_maxpool2dsamepadding0_slice0 fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential2_conv0_fwd [label="Convolution
+3x3/1x1, 256" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential2_conv0_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential2_conv1_fwd [label="Convolution
+3x3/1x1, 256" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential2_conv1_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential2_conv2_fwd [label="Convolution
+3x3/1x1, 256" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential2_conv2_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential2_hybridsequential0_pool0_fwd [label="Pooling
+max, 2x2/2x2" fillcolor="#80b1d3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential2_maxpool2dsamepadding0_slice0 [label=hybridsequential2_maxpool2dsamepadding0_slice0 fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential9_conv0_fwd [label="Convolution
+1x1/1x1, 21" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential9_croppinglayer2d0_slice0 [label=hybridsequential9_croppinglayer2d0_slice0 fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential3_conv0_fwd [label="Convolution
+3x3/1x1, 512" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential3_conv0_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential3_conv1_fwd [label="Convolution
+3x3/1x1, 512" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential3_conv1_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential3_conv2_fwd [label="Convolution
+3x3/1x1, 512" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential3_conv2_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential3_hybridsequential0_pool0_fwd [label="Pooling
+max, 2x2/2x2" fillcolor="#80b1d3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential3_maxpool2dsamepadding0_slice0 [label=hybridsequential3_maxpool2dsamepadding0_slice0 fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential4_conv0_fwd [label="Convolution
+3x3/1x1, 512" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential4_conv0_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential4_conv1_fwd [label="Convolution
+3x3/1x1, 512" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential4_conv1_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential4_conv2_fwd [label="Convolution
+3x3/1x1, 512" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential4_conv2_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential4_hybridsequential0_pool0_fwd [label="Pooling
+max, 2x2/2x2" fillcolor="#80b1d3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential4_maxpool2dsamepadding0_slice0 [label=hybridsequential4_maxpool2dsamepadding0_slice0 fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential5_conv0_fwd [label="Convolution
+7x7/1x1, 4096" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential5_conv0_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential5_dropout0_fwd [label=hybridsequential5_dropout0_fwd fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential5_conv1_fwd [label="Convolution
+1x1/1x1, 4096" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential5_conv1_relu_fwd [label="Activation
+relu" fillcolor="#ffffb3" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential5_dropout1_fwd [label=hybridsequential5_dropout1_fwd fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential5_conv2_fwd [label="Convolution
+1x1/1x1, 21" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential6_conv0_fwd [label=hybridsequential6_conv0_fwd fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential7_conv0_fwd [label="Convolution
+1x1/1x1, 21" fillcolor="#fb8072" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential7_croppinglayer2d0_slice0 [label=hybridsequential7_croppinglayer2d0_slice0 fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	fcnvgg160__plus0 [label=fcnvgg160__plus0 fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential8_conv0_fwd [label=hybridsequential8_conv0_fwd fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	fcnvgg160__plus1 [label=fcnvgg160__plus1 fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential10_conv0_fwd [label=hybridsequential10_conv0_fwd fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential10_croppinglayer2d0_slice0 [label=hybridsequential10_croppinglayer2d0_slice0 fillcolor="#fccde5" fixedsize=true height=0.8034 shape=box style=filled width=1.3]
+	hybridsequential0_conv0_fwd -> data [label="" arrowtail=open dir=back]
+	hybridsequential0_conv0_relu_fwd -> hybridsequential0_conv0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential0_conv1_fwd -> hybridsequential0_conv0_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential0_conv1_relu_fwd -> hybridsequential0_conv1_fwd [label="" arrowtail=open dir=back]
+	hybridsequential0_hybridsequential0_pool0_fwd -> hybridsequential0_conv1_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential0_maxpool2dsamepadding0_slice0 -> hybridsequential0_hybridsequential0_pool0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential1_conv0_fwd -> hybridsequential0_maxpool2dsamepadding0_slice0 [label="" arrowtail=open dir=back]
+	hybridsequential1_conv0_relu_fwd -> hybridsequential1_conv0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential1_conv1_fwd -> hybridsequential1_conv0_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential1_conv1_relu_fwd -> hybridsequential1_conv1_fwd [label="" arrowtail=open dir=back]
+	hybridsequential1_hybridsequential0_pool0_fwd -> hybridsequential1_conv1_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential1_maxpool2dsamepadding0_slice0 -> hybridsequential1_hybridsequential0_pool0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential2_conv0_fwd -> hybridsequential1_maxpool2dsamepadding0_slice0 [label="" arrowtail=open dir=back]
+	hybridsequential2_conv0_relu_fwd -> hybridsequential2_conv0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential2_conv1_fwd -> hybridsequential2_conv0_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential2_conv1_relu_fwd -> hybridsequential2_conv1_fwd [label="" arrowtail=open dir=back]
+	hybridsequential2_conv2_fwd -> hybridsequential2_conv1_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential2_conv2_relu_fwd -> hybridsequential2_conv2_fwd [label="" arrowtail=open dir=back]
+	hybridsequential2_hybridsequential0_pool0_fwd -> hybridsequential2_conv2_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential2_maxpool2dsamepadding0_slice0 -> hybridsequential2_hybridsequential0_pool0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential9_conv0_fwd -> hybridsequential2_maxpool2dsamepadding0_slice0 [label="" arrowtail=open dir=back]
+	hybridsequential9_croppinglayer2d0_slice0 -> hybridsequential9_conv0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential3_conv0_fwd -> hybridsequential2_maxpool2dsamepadding0_slice0 [label="" arrowtail=open dir=back]
+	hybridsequential3_conv0_relu_fwd -> hybridsequential3_conv0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential3_conv1_fwd -> hybridsequential3_conv0_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential3_conv1_relu_fwd -> hybridsequential3_conv1_fwd [label="" arrowtail=open dir=back]
+	hybridsequential3_conv2_fwd -> hybridsequential3_conv1_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential3_conv2_relu_fwd -> hybridsequential3_conv2_fwd [label="" arrowtail=open dir=back]
+	hybridsequential3_hybridsequential0_pool0_fwd -> hybridsequential3_conv2_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential3_maxpool2dsamepadding0_slice0 -> hybridsequential3_hybridsequential0_pool0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential4_conv0_fwd -> hybridsequential3_maxpool2dsamepadding0_slice0 [label="" arrowtail=open dir=back]
+	hybridsequential4_conv0_relu_fwd -> hybridsequential4_conv0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential4_conv1_fwd -> hybridsequential4_conv0_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential4_conv1_relu_fwd -> hybridsequential4_conv1_fwd [label="" arrowtail=open dir=back]
+	hybridsequential4_conv2_fwd -> hybridsequential4_conv1_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential4_conv2_relu_fwd -> hybridsequential4_conv2_fwd [label="" arrowtail=open dir=back]
+	hybridsequential4_hybridsequential0_pool0_fwd -> hybridsequential4_conv2_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential4_maxpool2dsamepadding0_slice0 -> hybridsequential4_hybridsequential0_pool0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential5_conv0_fwd -> hybridsequential4_maxpool2dsamepadding0_slice0 [label="" arrowtail=open dir=back]
+	hybridsequential5_conv0_relu_fwd -> hybridsequential5_conv0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential5_dropout0_fwd -> hybridsequential5_conv0_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential5_conv1_fwd -> hybridsequential5_dropout0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential5_conv1_relu_fwd -> hybridsequential5_conv1_fwd [label="" arrowtail=open dir=back]
+	hybridsequential5_dropout1_fwd -> hybridsequential5_conv1_relu_fwd [label="" arrowtail=open dir=back]
+	hybridsequential5_conv2_fwd -> hybridsequential5_dropout1_fwd [label="" arrowtail=open dir=back]
+	hybridsequential6_conv0_fwd -> hybridsequential5_conv2_fwd [label="" arrowtail=open dir=back]
+	hybridsequential7_conv0_fwd -> hybridsequential3_maxpool2dsamepadding0_slice0 [label="" arrowtail=open dir=back]
+	hybridsequential7_croppinglayer2d0_slice0 -> hybridsequential7_conv0_fwd [label="" arrowtail=open dir=back]
+	fcnvgg160__plus0 -> hybridsequential6_conv0_fwd [label="" arrowtail=open dir=back]
+	fcnvgg160__plus0 -> hybridsequential7_croppinglayer2d0_slice0 [label="" arrowtail=open dir=back]
+	hybridsequential8_conv0_fwd -> fcnvgg160__plus0 [label="" arrowtail=open dir=back]
+	fcnvgg160__plus1 -> hybridsequential9_croppinglayer2d0_slice0 [label="" arrowtail=open dir=back]
+	fcnvgg160__plus1 -> hybridsequential8_conv0_fwd [label="" arrowtail=open dir=back]
+	hybridsequential10_conv0_fwd -> fcnvgg160__plus1 [label="" arrowtail=open dir=back]
+	hybridsequential10_croppinglayer2d0_slice0 -> hybridsequential10_conv0_fwd [label="" arrowtail=open dir=back]
+}

@@ -4,7 +4,7 @@ from mxnet import nd, autograd
 from mxnet import gluon
 from mxnet.gluon import nn
 
-from custom_layers import CroppingLayer2D, Add, Input, ConcatLayer, SequentialMultiInput
+from custom_layers import CroppingLayer2D, Add, Input, ConcatLayer, SequentialMultiInput, MaxPool2DSamePadding
 
 
 class FcnVGG16(nn.HybridBlock):
@@ -16,52 +16,59 @@ class FcnVGG16(nn.HybridBlock):
         # VGG-16 convolution block 1
         self.block1 = nn.HybridSequential()
         with self.block1.name_scope():
+            '''Achieve 'same' padding same as in tensorflow keras:
+            https://discuss.mxnet.io/t/pooling-and-convolution-with-same-mode/528/2
+            Essentially: kernel_size=(k, k) -> padding=(k//2, k//2)
+            If k is even, slice off first column and row.
+            if k%2 == 0:
+                pool = pool[:,:,1:,1:]
+            '''
             self.block1.add(nn.Conv2D(64, (3, 3), activation='relu', padding=(100,100)))
-            self.block1.add(nn.Conv2D(64, (3, 3), activation='relu'))
-            self.block1.add(nn.MaxPool2D((2, 2), strides=(2, 2)))
+            self.block1.add(nn.Conv2D(64, (3, 3), activation='relu', padding=(3//2, 3//2)))
+            self.block1.add(MaxPool2DSamePadding((2, 2), strides=(2, 2)))
 
         # VGG-16 convolution block 2
         self.block2 = nn.HybridSequential()
         with self.block2.name_scope():
             self.block2.add(self.block1)
-            self.block2.add(nn.Conv2D(128, (3, 3), activation='relu'))
-            self.block2.add(nn.Conv2D(128, (3, 3), activation='relu'))
-            self.block2.add(nn.MaxPool2D((2, 2), strides=(2, 2)))
+            self.block2.add(nn.Conv2D(128, (3, 3), activation='relu', padding=(3//2, 3//2)))
+            self.block2.add(nn.Conv2D(128, (3, 3), activation='relu', padding=(3//2, 3//2)))
+            self.block2.add(MaxPool2DSamePadding((2, 2), strides=(2, 2)))
 
         # VGG-16 convolution block 3
         self.block3 = nn.HybridSequential()
         with self.block3.name_scope():
             self.block3.add(self.block2)
-            self.block3.add(nn.Conv2D(256, (3, 3), activation='relu'))
-            self.block3.add(nn.Conv2D(256, (3, 3), activation='relu'))
-            self.block3.add(nn.Conv2D(256, (3, 3), activation='relu'))
-            self.block3.add(nn.MaxPool2D((2, 2), strides=(2, 2)))
+            self.block3.add(nn.Conv2D(256, (3, 3), activation='relu', padding=(3//2, 3//2)))
+            self.block3.add(nn.Conv2D(256, (3, 3), activation='relu', padding=(3//2, 3//2)))
+            self.block3.add(nn.Conv2D(256, (3, 3), activation='relu', padding=(3//2, 3//2)))
+            self.block3.add(MaxPool2DSamePadding((2, 2), strides=(2, 2)))
 
         # VGG-16 convolution block 4
         self.block4 = nn.HybridSequential()
         with self.block4.name_scope():
-            self.block4.add(nn.Conv2D(512, (3, 3), activation='relu'))
-            self.block4.add(nn.Conv2D(512, (3, 3), activation='relu'))
-            self.block4.add(nn.Conv2D(512, (3, 3), activation='relu'))
-            self.block4.add(nn.MaxPool2D((2, 2), strides=(2, 2)))
+            self.block4.add(nn.Conv2D(512, (3, 3), activation='relu', padding=(3//2, 3//2)))
+            self.block4.add(nn.Conv2D(512, (3, 3), activation='relu', padding=(3//2, 3//2)))
+            self.block4.add(nn.Conv2D(512, (3, 3), activation='relu', padding=(3//2, 3//2)))
+            self.block4.add(MaxPool2DSamePadding((2, 2), strides=(2, 2)))
 
         # VGG-16 convolution block 5
         self.block5 = nn.HybridSequential()
         with self.block5.name_scope():
-            self.block5.add(nn.Conv2D(512, (3, 3), activation='relu'))
-            self.block5.add(nn.Conv2D(512, (3, 3), activation='relu'))
-            self.block5.add(nn.Conv2D(512, (3, 3), activation='relu'))
-            self.block5.add(nn.MaxPool2D((2, 2), strides=(2, 2)))
+            self.block5.add(nn.Conv2D(512, (3, 3), activation='relu', padding=(3//2, 3//2)))
+            self.block5.add(nn.Conv2D(512, (3, 3), activation='relu', padding=(3//2, 3//2)))
+            self.block5.add(nn.Conv2D(512, (3, 3), activation='relu', padding=(3//2, 3//2)))
+            self.block5.add(MaxPool2DSamePadding((2, 2), strides=(2, 2)))
 
         # Fully-connected layers converted to convolution layers
         self.fc_end = nn.HybridSequential()
         with self.fc_end.name_scope():
             self.fc_end.add(self.block5)
-            self.fc_end.add(nn.Conv2D(4096, (7, 7), activation='relu'))#, padding='valid'))
+            self.fc_end.add(nn.Conv2D(4096, (7, 7), activation='relu'))
             self.fc_end.add(nn.Dropout(0.5))
-            self.fc_end.add(nn.Conv2D(4096, (1, 1), activation='relu'))#, padding='valid'))
+            self.fc_end.add(nn.Conv2D(4096, (1, 1), activation='relu'))
             self.fc_end.add(nn.Dropout(0.5))
-            self.fc_end.add(nn.Conv2D(21, (1, 1)))#, padding='valid'))
+            self.fc_end.add(nn.Conv2D(21, (1, 1)))
 
         # Deconvolution
         self.deconv = nn.HybridSequential()
@@ -95,6 +102,7 @@ class FcnVGG16(nn.HybridBlock):
         out_block3 = self.block3(X)
         out_block4 = self.block4(out_block3)
         out_block5_fc_deconv = self.deconv(out_block4)
+        print(out_block5_fc_deconv)
         out_skip4 = self.skip_4(out_block4)
         out_skip3 = self.skip_3(out_block3)
         out_conc1 = self.conc1(out_block5_fc_deconv + out_skip4)
