@@ -25,11 +25,14 @@ this is just a personal todo list and collection of more or less relevant notes
 - adapt this python implementation as custom operator for mxnet
 - current problem: understanding how to make bilateral filters, adjusting implementation to account for theta variables
 - python custom mxnet operator should be just a temporary workaround, in the future a custom mxnet operator in cpp should replace it
+
 - python implementation very slow in comparison to cpp implementation
 - backwards pass needs to be implemented. error gradients are computed by passing the error through the same M filters in reverse order,
 which means in terms of permutohedral lattice operations to switch filters in the blur stage, while keeping the rest (building the permutohedral
 lattice, the splatting, and splicing) the same as in the forward pass (refer to CRF-RNN paper section 4.2)
 - this is achieved by setting the reverse flag in the blur function
+
+- Update: implemented preliminary high dimension filter operator on the basis of pymutohedral lattice
 
 ## next steps:
 
