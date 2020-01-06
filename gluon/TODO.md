@@ -4,7 +4,7 @@ this is just a personal todo list and collection of more or less relevant notes
 
 ## fcn_vgg16
 
-- implemented prelimary network, network graph looks fine
+- implemented preliminary network, network graph looks fine
 - make graph more readable, add names to operations where possible, turn by 90°
 - test performance of fcn
 - understand how skip connections work
