@@ -2,8 +2,9 @@
 https://mxnet.incubator.apache.org/api/faq/new_op
 '''
 
-# import sys
-# sys.path.insert(0, 'pymutohedral_lattice')
+import sys
+sys.path.insert(0, 'src')
+# print(sys.path)
 
 import os
 import mxnet as mx
@@ -11,12 +12,48 @@ from mxnet import nd
 from mxnet.test_utils import get_mnist_iterator
 import numpy as np
 import logging
-from pymutohedral_lattice.permutohedral_lattice import PermutohedralLattice
+from permutohedral_lattice import PermutohedralLattice
 
 
 ### TODO set attributes
 
-@mx.operator.register('HighDimFilter')
+class Softmax(mx.operator.CustomOp):
+    def forward(self, is_train, req, in_data, out_data, aux):
+        x = in_data[0].asnumpy()
+        y = np.exp(x - x.max(axis=1).reshape((x.shape[0], 1)))
+        y /= y.sum(axis=1).reshape((x.shape[0], 1))
+        self.assign(out_data[0], req[0], mx.nd.array(y))
+
+    def backward(self, req, out_grad, in_data, out_data, in_grad, aux):
+        l = in_data[1].asnumpy().ravel().astype(np.int)
+        y = out_data[0].asnumpy()
+        y[np.arange(l.shape[0]), l] -= 1.0
+        self.assign(in_grad[0], req[0], mx.nd.array(y))
+
+@mx.operator.register("softmax")
+class SoftmaxProp(mx.operator.CustomOpProp):
+    def __init__(self):
+        super(SoftmaxProp, self).__init__(need_top_grad=False)
+
+    def list_arguments(self):
+        return ['data', 'label']
+
+    def list_outputs(self):
+        return ['output']
+
+    def infer_shape(self, in_shape):
+        data_shape = in_shape[0]
+        label_shape = (in_shape[0][0],)
+        output_shape = in_shape[0]
+        return [data_shape, label_shape], [output_shape], []
+
+    def infer_type(self, in_type):
+        return in_type, [in_type[0]], []
+
+    def create_operator(self, ctx, shapes, dtypes):
+        return Softmax()
+
+
 class _high_dim_filter_grad(mx.operator.CustomOp):
     def __init__(self, bilateral=True, theta_alpha=None, theta_beta=None, theta_gamma=None):
         super(_high_dim_filter_grad, self).__init__()
@@ -42,12 +79,10 @@ class _high_dim_filter_grad(mx.operator.CustomOp):
 
     def backward(self, req, out_grad, in_data, out_data, in_grad, aux):
         y = out_data[0].asnumpy()
-        ### TODO do permutohedral stuff
         ### backward pass: pass error through the same M gaussian filters in reverse order
         ### in terms of permutohedral lattice operations this can be accomplished by reversing the order in the blur stage,
         ### while keeping the order for building the permutohedral lattice, splatting, and slicing stays the same
         ### as in the forward pass.
-
 
         if self.bilateral:
             positions = compute_bilateral_kernel(y, self.theta_alpha, self.theta_beta)
@@ -117,8 +152,11 @@ if __name__ == '__main__':
     fc2 = mx.symbol.FullyConnected(data = act1, name = 'fc2', num_hidden = 64)
     act2 = mx.symbol.Activation(data = fc2, name='relu2', act_type="relu")
     fc3 = mx.symbol.FullyConnected(data = act2, name='fc3', num_hidden=10)
-    #mlp = mx.symbol.Softmax(data = fc3, name = 'softmax')
-    mlp = mx.symbol.Softmax(data=fc3, name='softmax', op_type='softmax')
+    mlp = mx.symbol.Custom(data = fc3, name = 'softmax', op_type = 'softmax')
+
+    # sm = mx.symbol.Softmax(data = fc3, name='softmax')
+    # mlp = mx.symbol.Custom(data=mlp, name='HighDimFilter', bilateral=True, theta_alpha=160., theta_beta=3., theta_gamma=3., op_type='HighDimFilter')
+
 
     # data
 
@@ -129,9 +167,9 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     # MXNET_CPU_WORKER_NTHREADS must be greater than 1 for custom op to work on CPU
-    context=mx.cpu()
+    # context=mx.cpu()
     # Uncomment this line to train on GPU
-    # context=mx.gpu(0)
+    context=mx.gpu(0)
 
     mod = mx.mod.Module(mlp, context=context)
 

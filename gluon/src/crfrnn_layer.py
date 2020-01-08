@@ -104,18 +104,18 @@ class CrfRnnLayer(nn.HybridBlock):
         q_values = unaries
 
         for i in range(self.num_iterations):
-            # softmax_out = F.softmax(q_values)
+            softmax_out = F.softmax(q_values)
 
             # Spatial filtering
             spatial_out = F.Custom(op=all_ones, data=rgb,
-                                        name='HighDimFilter', op_type='HighDimFilter',
-                                        bilateral=False,
-                                        theta_gamma=self.theta_gamma)
+                                   name='SpatialFilter', op_type='HighDimFilter',
+                                   bilateral=False,
+                                   theta_gamma=self.theta_gamma)
             spatial_out = spatial_out / spatial_norm_vals
 
             # Bilateral filtering
             bilateral_out = F.Custom(op=all_ones, data=rgb,
-                                     name='HighDimFilter', op_type='HighDimFilter',
+                                     name='BilateralFilter', op_type='HighDimFilter',
                                      bilateral=True,
                                      theta_alpha=self.theta_alpha, theta_beta=self.theta_beta)
             bilateral_out = bilateral_out / bilateral_norm_vals

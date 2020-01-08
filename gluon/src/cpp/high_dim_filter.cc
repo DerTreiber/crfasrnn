@@ -22,117 +22,78 @@
  *  SOFTWARE.
  */
 
-#include "tensorflow/core/framework/op.h"
-#include "tensorflow/core/framework/shape_inference.h"
-#include "tensorflow/core/framework/op_kernel.h"
-#include "tensorflow/core/framework/tensor_shape.h"
-#include "modified_permutohedral.h"
+// #include "tensorflow/core/framework/op.h"
+// #include "tensorflow/core/framework/shape_inference.h"
+// #include "tensorflow/core/framework/op_kernel.h"
+// #include "tensorflow/core/framework/tensor_shape.h"
+// #include "modified_permutohedral.h"
 
-using namespace tensorflow;
+namespace mxnet{
 
-void compute_spatial_kernel(float * const output_kernel, const int width,
-                            const int height, const float theta_gamma) {
 
-  const int num_pixels = width * height;
-  for (int p = 0; p < num_pixels; ++p) {
-    output_kernel[2 * p] = static_cast<float>(p % width) / theta_gamma;
-    output_kernel[2 * p + 1] = static_cast<float>(p / width) / theta_gamma;
-  }
-}
+namespace mxnet {
+namespace op {
 
-void compute_bilateral_kernel(float * const output_kernel, const Tensor& rgb_tensor,
-                              const float theta_alpha, const float theta_beta) {
+DMLC_REGISTER_PARAMETER(DiagParam);
 
-  const int height = rgb_tensor.dim_size(1);
-  const int width = rgb_tensor.dim_size(2);
-  const int num_pixels = height * width;
-  auto rgb = rgb_tensor.flat<float>();
+NNVM_REGISTER_OP(diag)
+.describe(R"code(Extracts a diagonal or constructs a diagonal array.
+``diag``'s behavior depends on the input array dimensions:
+- 1-D arrays: constructs a 2-D array with the input as its diagonal, all other elements are zero.
+- N-D arrays: extracts the diagonals of the sub-arrays with axes specified by ``axis1`` and ``axis2``.
+  The output shape would be decided by removing the axes numbered ``axis1`` and ``axis2`` from the
+  input shape and appending to the result a new axis with the size of the diagonals in question.
+  For example, when the input shape is `(2, 3, 4, 5)`, ``axis1`` and ``axis2`` are 0 and 2
+  respectively and ``k`` is 0, the resulting shape would be `(3, 5, 2)`.
+Examples::
+  x = [[1, 2, 3],
+       [4, 5, 6]]
+  diag(x) = [1, 5]
+  diag(x, k=1) = [2, 6]
+  diag(x, k=-1) = [4]
+  x = [1, 2, 3]
+  diag(x) = [[1, 0, 0],
+             [0, 2, 0],
+             [0, 0, 3]]
+  diag(x, k=1) = [[0, 1, 0],
+                  [0, 0, 2],
+                  [0, 0, 0]]
+  diag(x, k=-1) = [[0, 0, 0],
+                   [1, 0, 0],
+                   [0, 2, 0]]
+  x = [[[1, 2],
+        [3, 4]],
+       [[5, 6],
+        [7, 8]]]
+  diag(x) = [[1, 7],
+             [2, 8]]
+  diag(x, k=1) = [[3],
+                  [4]]
+  diag(x, axis1=-2, axis2=-1) = [[1, 4],
+                                 [5, 8]]
+)code" ADD_FILELINE)
+.set_attr_parser(ParamParser<DiagParam>)
+.set_num_inputs(1)
+.set_num_outputs(1)
+.set_attr<nnvm::FListInputNames>("FListInputNames",
+  [](const NodeAttrs& attrs) {
+    return std::vector<std::string>{"data"};
+  })
+.set_attr<mxnet::FInferShape>("FInferShape", DiagOpShape)
+.set_attr<nnvm::FInferType>("FInferType", DiagOpType)
+.set_attr<FCompute>("FCompute<cpu>", DiagOpForward<cpu>)
+.set_attr<nnvm::FGradient>("FGradient", ElemwiseGradUseNone{"_backward_diag"})
+.add_argument("data", "NDArray-or-Symbol", "Input ndarray")
+.add_arguments(DiagParam::__FIELDS__());
 
-  for (int p = 0; p < num_pixels; ++p) {
-    // Spatial terms
-    output_kernel[5 * p] = static_cast<float>(p % width) / theta_alpha;
-    output_kernel[5 * p + 1] = static_cast<float>(p / width) / theta_alpha;
 
-    // Color terms
-    output_kernel[5 * p + 2] = static_cast<float>(rgb(p) / theta_beta);
-    output_kernel[5 * p + 3] = static_cast<float>(rgb(num_pixels + p) / theta_beta);
-    output_kernel[5 * p + 4] = static_cast<float>(rgb(2 * num_pixels + p) / theta_beta);
-  }
-}
+NNVM_REGISTER_OP(_backward_diag)
+.set_attr_parser(ParamParser<DiagParam>)
+.set_num_inputs(1)
+.set_num_outputs(1)
+.set_attr<nnvm::TIsBackward>("TIsBackward", true)
+.set_attr<FCompute>("FCompute<cpu>", DiagOpBackward<cpu>);
 
-REGISTER_OP("HighDimFilter")
-    .Attr("bilateral: bool")
-    .Attr("theta_alpha: float = 1.0")
-    .Attr("theta_beta: float = 1.0")
-    .Attr("theta_gamma: float = 1.0")
-    .Attr("backwards: bool = false")
-    .Input("raw: float32")
-    .Input("rgb: float32")
-    .Output("filtered: float32")
-    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
-      c->set_output(0, c->input(0));
-      return Status::OK();
-    });
 
-class HighDimFilterOp : public OpKernel {
- public:
-  explicit HighDimFilterOp(OpKernelConstruction* context) : OpKernel(context) {
-
-    OP_REQUIRES_OK(context,
-                   context->GetAttr("bilateral", &bilateral_));
-    OP_REQUIRES_OK(context,
-                   context->GetAttr("theta_alpha", &theta_alpha_));
-    OP_REQUIRES_OK(context,
-                   context->GetAttr("theta_beta", &theta_beta_));
-    OP_REQUIRES_OK(context,
-                   context->GetAttr("theta_gamma", &theta_gamma_));
-    OP_REQUIRES_OK(context,
-                   context->GetAttr("backwards", &backwards_));
-  }
-
-  void Compute(OpKernelContext* context) override {
-
-    // Grab the unary tensor
-    const Tensor& input_tensor = context->input(0);
-    // Grab the RGB image tensor
-    const Tensor& image_tensor = context->input(1);
-
-    const int channels = input_tensor.dim_size(0);
-    const int height = input_tensor.dim_size(1);
-    const int width = input_tensor.dim_size(2);
-    const int num_pixels = width * height;
-
-    // Create the output tensor
-    Tensor* output_tensor = NULL;
-    OP_REQUIRES_OK(context, context->allocate_output(0, input_tensor.shape(),
-                                                     &output_tensor));
-    ModifiedPermutohedral mp;
-
-    if (bilateral_) {
-      float * const kernel_vals = new float[5 * num_pixels];
-      compute_bilateral_kernel(kernel_vals, image_tensor,
-                               theta_alpha_, theta_beta_);
-      mp.init(kernel_vals, 5, num_pixels);
-      mp.compute(*output_tensor, input_tensor, channels, backwards_);
-
-      delete[] kernel_vals;
-    } else {
-      float * const kernel_vals = new float[2 * num_pixels];
-      compute_spatial_kernel(kernel_vals, width, height, theta_gamma_);
-      mp.init(kernel_vals, 2, num_pixels);
-      mp.compute(*output_tensor, input_tensor, channels, backwards_);
-
-      delete[] kernel_vals;
-    }
-
-  }
- 
- private:
-  bool bilateral_;
-  float theta_alpha_;
-  float theta_beta_;
-  float theta_gamma_;
-  bool backwards_;
-};
-
-REGISTER_KERNEL_BUILDER(Name("HighDimFilter").Device(DEVICE_CPU), HighDimFilterOp);
+}  // namespace op
+}  // namespace mxnet

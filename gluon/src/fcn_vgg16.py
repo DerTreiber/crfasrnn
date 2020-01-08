@@ -3,6 +3,8 @@ import mxnet as mx
 from mxnet import nd, autograd
 from mxnet import gluon
 from mxnet.gluon import nn
+from mxnet.test_utils import get_mnist_iterator
+import logging
 
 from custom_layers import CroppingLayer2D, Add, Input, ConcatLayer, SequentialMultiInput, MaxPool2DSamePadding
 
@@ -120,3 +122,20 @@ if __name__ == '__main__':
 
     digraph = mx.viz.plot_network(tmp, title='fcn_mxnet')
     digraph.view(filename='fcn_mxnet')
+
+    # train, val = get_mnist_iterator(batch_size=100, input_shape = (784,))
+
+    # train
+
+    # logging.basicConfig(level=logging.DEBUG)
+
+    # MXNET_CPU_WORKER_NTHREADS must be greater than 1 for custom op to work on CPU
+    # context=mx.cpu()
+    # Uncomment this line to train on GPU
+    # context=mx.gpu(0)
+
+    # mod = mx.mod.Module(mlp, context=context)
+
+    # mod.fit(train_data=train, eval_data=val, optimizer='sgd',
+        # optimizer_params={'learning_rate':0.1, 'momentum': 0.9, 'wd': 0.00001},
+        # num_epoch=10, batch_end_callback=mx.callback.Speedometer(100, 100))
