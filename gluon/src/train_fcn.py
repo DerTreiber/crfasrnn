@@ -15,7 +15,7 @@ input_transform = transforms.Compose([
 ])
 
 # get the dataset
-trainset = gluoncv.data.COCOSegmentation(split='train', transform=input_transform)
+trainset = gluoncv.data.VOCSegmentation(split='train', transform=input_transform)
 print('Training images:', len(trainset))
 
 # set batch_size = 2 for toy example

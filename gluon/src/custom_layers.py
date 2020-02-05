@@ -110,22 +110,25 @@ class MaxPool2DSamePadding(nn.HybridBlock):
 #     def __len__(self):
 #         return self.len
 
-if __name__ == '__main__':
-    # symbol_data = mx.sym.var('data')
-
+def test_slice(shape=(5,1,28,28), begin=(0,0,0,0), end=(None,None,None,None)):
     import numpy as np
-    arr = np.random.rand(5, 3, 28, 28)
+    arr = np.random.rand(*shape)
 
     xs = mx.nd.array(arr, dtype=np.float)
     h, w = xs.shape[:2]
 
-    xs = xs.slice(begin=(0,0,1,1), end=(None, None, None, None))
+    xs = xs.slice(begin=begin, end=end)
     print(xs.shape)
 
-    net = MaxPool2DSamePadding((2,2), strides=(2,2))
+if __name__ == '__main__':
+    # symbol_data = mx.sym.var('data')
 
-    net.hybridize()
+    test_slice()
 
-    xs = net(xs)
+    # net = MaxPool2DSamePadding((2,2), strides=(2,2))
 
-    print(xs)
+    # net.hybridize()
+
+    # xs = net(xs)
+
+    # print(xs)

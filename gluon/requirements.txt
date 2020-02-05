@@ -1,3 +1,4 @@
 mxnet
 h5py
 Pillow
+opencv
