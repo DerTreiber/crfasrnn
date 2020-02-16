@@ -110,14 +110,25 @@ class MaxPool2DSamePadding(nn.HybridBlock):
 #     def __len__(self):
 #         return self.len
 
-def show_slice(test_shape=(5,1,28,28), begin=(0,0,0,0), end=(None,None,None,None)):
+def show_slice(test_shape=(5,1,28,28), begin=0, end=(None,None,None,None)):
     import numpy as np
     arr = np.random.rand(*test_shape)
+
+
+    if end < 1:
+        out_width = (test_shape[-1] - begin) + end
+    else:
+        out_width = end - begin
+
     xs = mx.nd.array(arr, dtype=np.float)
+    print('Input shape: ', xs.shape)
 
-    xs = xs.slice(begin=begin, end=end)
+    if end == 0:
+        end = None
+    xs = xs.slice(begin=(0,0,begin,begin), end=(None, None, end, end))
 
-    print(xs.shape)
+    print('Output shape: ', xs.shape)
+    assert(xs.shape[-1] == out_width)
 
 def show_max_pool(test_shape=(5,1,28,28)):
     import numpy as np
@@ -137,5 +148,5 @@ def show_max_pool(test_shape=(5,1,28,28)):
     print(xs.shape)
 
 if __name__ == '__main__':
-    show_slice()
-    show_max_pool()
+    show_slice(begin=0, end=0)
+    # show_max_pool()
